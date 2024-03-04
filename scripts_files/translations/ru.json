@@ -1,1 +1,7 @@
-{}
+{
+	"Aggro Key": "Бинд агра крипов",
+	"Deaggro Key": "Бинд разагра крипов",
+	"Move to mouse position": "Двигатся к мышке",
+	"Auto tower deaggro": "Автоматический разагр башни",
+	"Move to mouse position after aggro/deaggro": "Двигатся к мышке после агро/разагр"
+}
