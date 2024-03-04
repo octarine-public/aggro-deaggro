@@ -5,7 +5,6 @@ import {
 	Input,
 	LocalPlayer,
 	Sleeper,
-	Tower,
 	Unit
 } from "github.com/octarine-public/wrapper/index"
 
@@ -29,7 +28,7 @@ const bootstrap = new (class CAggroDeaggro {
 		if (hero === undefined) {
 			return
 		}
-		if (!(unit instanceof Tower) || !unit.IsEnemy() || !unit.IsAlive) {
+		if (!unit.IsTower || !unit.IsEnemy() || !unit.IsAlive) {
 			return
 		}
 		if (hero !== unit.Target || !unit.CanAttack(hero)) {
@@ -44,7 +43,10 @@ const bootstrap = new (class CAggroDeaggro {
 		}
 
 		hero.AttackTarget(target)
-		hero.AttackMove(Input.CursorOnWorld)
+
+		if (this.menu.MoveToMousePosition.value) {
+			hero.AttackMove(Input.CursorOnWorld)
+		}
 	}
 
 	public EntityCreated(entity: Entity) {
@@ -95,14 +97,10 @@ const bootstrap = new (class CAggroDeaggro {
 		if (!this.menu.State.value) {
 			return
 		}
-		if (!this.menu.State.value) {
-			return
-		}
 		const hero = this.getLocalHero()
 		if (hero === undefined || hero.IsInvulnerable) {
 			return
 		}
-
 		const target = this.units
 			.filter(x => !x.IsEnemy() && x.IsCreep && hero.CanAttack(x))
 			.orderBy(x => hero.GetAngle(x))[0]
@@ -114,7 +112,7 @@ const bootstrap = new (class CAggroDeaggro {
 
 	private getLocalHero(): Nullable<Hero> {
 		const hero = LocalPlayer?.Hero
-		if (hero === undefined || !hero.IsAlive || hero.IsCharge) {
+		if (hero === undefined || !hero.IsAlive) {
 			return
 		}
 		if (hero.IsInvulnerable || hero.IsCharge) {
