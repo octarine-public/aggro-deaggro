@@ -4,23 +4,25 @@ import {
 	Hero,
 	Input,
 	LocalPlayer,
-	Sleeper,
 	Unit
 } from "github.com/octarine-public/wrapper/index"
 
 import { MenuManager } from "./menu"
 
-const bootstrap = new (class CAggroDeaggro {
+new (class CAggroDeaggro {
 	private readonly units: Unit[] = []
-	private readonly sleeper = new Sleeper()
-	private readonly menu = new MenuManager(this.sleeper)
+	private readonly menu = new MenuManager()
 
 	constructor() {
 		this.menu.AggroKey.OnPressed(() => this.pressedAggro())
 		this.menu.DeaggroKey.OnPressed(() => this.pressedDeaggro())
+
+		EventsSDK.on("AttackStarted", this.AttackStarted.bind(this))
+		EventsSDK.on("EntityCreated", this.EntityCreated.bind(this))
+		EventsSDK.on("EntityDestroyed", this.EntityDestroyed.bind(this))
 	}
 
-	public AttackStarted(unit: Unit) {
+	protected AttackStarted(unit: Unit, _castPoint: number, _names: string[]) {
 		if (!this.menu.State.value || !this.menu.AutoTowerState.value) {
 			return
 		}
@@ -49,7 +51,7 @@ const bootstrap = new (class CAggroDeaggro {
 		}
 	}
 
-	public EntityCreated(entity: Entity) {
+	protected EntityCreated(entity: Entity) {
 		if (!(entity instanceof Unit)) {
 			return
 		}
@@ -58,17 +60,13 @@ const bootstrap = new (class CAggroDeaggro {
 		}
 	}
 
-	public EntityDestroyed(entity: Entity) {
+	protected EntityDestroyed(entity: Entity) {
 		if (!(entity instanceof Unit)) {
 			return
 		}
 		if (entity.IsCreep || entity.IsHero || entity.IsSpiritBear) {
 			this.units.remove(entity)
 		}
-	}
-
-	public GameChanged() {
-		this.sleeper.FullReset()
 	}
 
 	private pressedAggro() {
@@ -115,7 +113,7 @@ const bootstrap = new (class CAggroDeaggro {
 		if (hero === undefined || !hero.IsAlive) {
 			return
 		}
-		if (hero.IsInvulnerable || hero.IsCharge) {
+		if (hero.IsInvulnerable || hero.IsChargeOfDarkness) {
 			return
 		}
 		return hero
@@ -129,13 +127,3 @@ const bootstrap = new (class CAggroDeaggro {
 		hero.OrderStop()
 	}
 })()
-
-EventsSDK.on("GameEnded", () => bootstrap.GameChanged())
-
-EventsSDK.on("GameStarted", () => bootstrap.GameChanged())
-
-EventsSDK.on("AttackStarted", unit => bootstrap.AttackStarted(unit))
-
-EventsSDK.on("EntityCreated", entity => bootstrap.EntityCreated(entity))
-
-EventsSDK.on("EntityDestroyed", entity => bootstrap.EntityDestroyed(entity))
